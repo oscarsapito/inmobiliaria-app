@@ -1,18 +1,24 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
-import Firebase, { FirebaseContext } from './server';
+import React from "react";
+import ReactDOM from "react-dom";
+import "./index.css";
+import App from "./App";
+import reportWebVitals from "./reportWebVitals";
+import Firebase, { FirebaseContext } from "./server";
+import { initialState } from "./sesion/initialState";
+import { StateProvider } from "./sesion/store";
+//import sesionReducer from "./sesion/reducers/sesionReducer";
+import { mainReducer} from "./sesion/reducers";
 
 
-//const FirebaseContext = React.createContext();
+
 
 ReactDOM.render(
   <FirebaseContext.Provider value={new Firebase()}>
-        <App />
-  </FirebaseContext.Provider>  
-  , document.getElementById('root')
+    <StateProvider initialState={initialState} reducer={mainReducer}>
+      <App />
+    </StateProvider>
+  </FirebaseContext.Provider>,
+  document.getElementById('root')
 );
 
 // If you want to start measuring performance in your app, pass a function

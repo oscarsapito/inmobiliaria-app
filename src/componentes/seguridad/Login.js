@@ -1,6 +1,12 @@
 import { Avatar, Button, Container, TextField, Typography } from '@material-ui/core';
 import React, { Component } from 'react';
 import LockOutLineIcon from "@material-ui/icons/LockOutlined";
+import { compose } from "recompose";
+import { consumerFirebase } from "../../server";
+import { iniciarSesion } from "../../sesion/actions/sesionAction";
+import { openMensajePantalla } from "../../sesion/actions/snackbarAction";
+import { StateContext } from '../../sesion/store';
+
 
 
 const style = {
@@ -22,11 +28,23 @@ const style = {
 
 
 class Login extends Component {
+    static contextType = StateContext;
     state = {
         firebase : null,
         usuario: {
             email : '',
             password : '',
+        }
+    }
+
+
+    static getDerivedStateFromProps(nextProps, prevState){
+
+        if(nextProps.firebase === prevState.firebase){
+            return null;
+        }
+        return {
+            firebase: nextProps.firebase
         }
     }
 
@@ -39,7 +57,25 @@ class Login extends Component {
     }
 
 
+    login = async e =>{
+        e.preventDefault();
+        const [{sesion},dispatch] = this.context;
+        const { firebase,usuario } = this.state;
+        const {email,password} = usuario;
 
+        let callback = await iniciarSesion(dispatch, firebase,email,password);
+        if(callback.status){
+            this.props.history.push("/");
+        }else{
+            openMensajePantalla(dispatch, {
+                open: true,
+                mensaje: callback.mensaje.message
+            })
+        }
+
+
+    }       
+       
 
     render() {
         return (
@@ -54,7 +90,7 @@ class Login extends Component {
                     <form style={style.form}>
                         <TextField variant="outlined" label="Email" name="email" fullWidth margin="normal" onChange={this.onChange} value={this.state.usuario.email}/>
                         <TextField variant="outlined" label="password" type="password" name="password" fullWidth margin="normal" onChange={this.onChange} value={this.state.usuario.password}/>
-                        <Button type="submit" fullWidth variant="contained" color="primary">
+                        <Button type="submit" onClick={this.login} fullWidth variant="contained" color="primary">
                             Enviar
                         </Button>
                         
@@ -65,4 +101,4 @@ class Login extends Component {
     }
 }
 
-export default Login;
+export default compose(consumerFirebase)(Login);

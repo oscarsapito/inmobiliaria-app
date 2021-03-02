@@ -3,7 +3,9 @@ import {  Container, TextField, Typography, Grid, Avatar, Button,} from "@materi
 import LockOutLineIcon from "@material-ui/icons/LockOutlined";
 import { compose } from "recompose";
 import { consumerFirebase } from "../../server";
-
+import { crearUsuario } from "../../sesion/actions/sesionAction";
+import { StateContext } from "../../sesion/store";
+import { openMensajePantalla } from "../../sesion/actions/snackbarAction"
 
 const style = {
   paper: {
@@ -34,6 +36,8 @@ const usuarioInicial = {
 }
 
 class RegistrarUsuarios extends Component {
+  static contextType = StateContext;
+
     state ={
         firebase:null,
         usuario:{
@@ -63,23 +67,21 @@ class RegistrarUsuarios extends Component {
         })      
     }
 
-    registrarUsuario = e =>{
-        e.preventDefault();
-        console.log('imprimir objerto usuario del state',this.state.usuario);
-        const { usuario, firebase} = this.state;
+    registrarUsuario = async e =>{
+        e.preventDefault();        
+        const [{sesion}, dispatch] = this.context;
+        const { firebase, usuario} = this.state;
 
-        firebase.db
-        .collection("Users")
-        .add(usuario)
-        .then(usuarioAfter => {
-          console.log('esta insercion fue un exito', usuarioAfter);   
-          this.setState({
-            usuario: usuarioInicial
-          })       
-        })
-        .catch(error=>{
-          console.log('error',error);
-        })
+        let callback = await crearUsuario(dispatch , firebase , usuario);
+        if(callback.status){
+          this.props.history.push("/")
+        }else{
+          openMensajePantalla(dispatch, {
+            open: true,
+            mensaje: callback.mensaje.message
+          })
+        }
+        
     }
 
 
